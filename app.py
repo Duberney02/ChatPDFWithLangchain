@@ -14,6 +14,9 @@ from langchain.callbacks import get_openai_callback
 # Librerias para el response_container
 from streamlit_chat import message
 
+# Configuracion de prompt template
+from langchain import PromptTemplate
+
 # Importar streamlit
 import streamlit as st
 
@@ -72,6 +75,20 @@ response_container = st.container()
 # container del text box
 textcontainer = st.container()
 
+## prompt template
+
+# Template de la respuesta
+prompt_template = """
+                    Responda la pregunta con la mayor precisión posible utilizando el contexto proporcionado. Si la respuesta no está
+                    contenida en el contexto, digamos "La pregunta está fuera de contexto, 'no me la enseñaron' " \n\n
+                    contexto: \n {context}?\n
+                    pregunta: \n {question} \n
+                    respuesta: 
+                  """
+
+prompt = PromptTemplate(
+  template=prompt_template, input_variables=["context", "question"]
+)
 # Crear embeddings
 embeddings_pdf = create_embeddings(pdf_doc)
 
@@ -90,7 +107,7 @@ with textcontainer:
       #repuestas: 4 posibles respuestas
 
       llm = OpenAI(model_name="text-davinci-003")
-      chain = load_qa_chain(llm, chain_type="stuff")
+      chain = load_qa_chain(llm, chain_type="stuff", prompt=prompt)
 
       with get_openai_callback() as cb:
         response = chain.run(input_documents=docs, question=query)
